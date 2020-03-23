@@ -1,3 +1,5 @@
+// Package discordbotsgg provides a client implementation for interacting with
+// the discord.bots.gg API.
 package discordbotsgg
 
 import (
@@ -109,7 +111,7 @@ func (client *Client) queryBots(ctx context.Context, queryParameters *QueryParam
 	return page.Bots, err
 }
 
-// Update updates the given botID with the provided stats.
+// Update updates the given botID with the provided botStats.
 func (client *Client) Update(botID string, botStats *BotStats) error {
 	err := client.updateLimiter.Wait(context.Background())
 	if err != nil {

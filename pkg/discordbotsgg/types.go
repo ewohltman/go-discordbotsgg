@@ -7,18 +7,20 @@ import (
 	"time"
 )
 
+// QueryParameters are parameters that can be set for querying bots.
 type QueryParameters struct {
-	Q          string
-	Page       int
-	Limit      int
-	AuthorID   int64
-	AuthorName string
-	Unverified bool
-	Lib        string
-	Sort       string
-	Order      string
+	Q          string // Searches for bots that contain the query in their username or short description.
+	Page       int    // The page to look at. Default is 0.
+	Limit      int    // The number of results to retrieve. Must be between 1 and 100. Default is 50.
+	AuthorID   int64  // Retrieves bots by the specified author/co-owner's ID.
+	AuthorName string // Retrieves bots by the specified author/co-owner’s username and discriminator. Must be url encoded. (e.g. User%231234)
+	Unverified bool   // Retrieves unverified bots. Requires authentication. Default is false.
+	Lib        string // Retrieves bots written in a specific library.
+	Sort       string // Sorts the results by any of the following keys: username, id, guildcount, library, author.
+	Order      string // Sorts the results in ASC or DESC order.
 }
 
+// String is the URL value-encoded representation of a *QueryParameters.
 func (queryParameters *QueryParameters) String() string {
 	values := make(url.Values)
 
@@ -81,6 +83,7 @@ func (queryParameters *QueryParameters) String() string {
 	return values.Encode()
 }
 
+// Page is a response struct from the discord.bots.gg API.
 type Page struct {
 	Count int    `json:"count"`
 	Limit int    `json:"limit"`
@@ -88,6 +91,7 @@ type Page struct {
 	Bots  []*Bot `json:"bots"`
 }
 
+// Bot is a response struct from the discord.bots.gg API.
 type Bot struct {
 	UserID           string      `json:"userId"`
 	ClientID         string      `json:"clientId"`
@@ -114,12 +118,14 @@ type Bot struct {
 	Status           string      `json:"status"`
 }
 
+// BotOwner is a response struct from the discord.bots.gg API.
 type BotOwner struct {
 	Username      string `json:"username"`
 	Discriminator string `json:"discriminator"`
 	UserID        string `json:"userId"`
 }
 
+// BotStats is both a request and response struct for the discord.bots.gg API.
 type BotStats struct {
 	GuildCount int `json:"guildCount"`
 	ShardCount int `json:"shardCount"`
