@@ -56,15 +56,7 @@ func (queryParameters *QueryParameters) String() string {
 		sort := strings.ToLower(queryParameters.Sort)
 
 		switch sort {
-		case "username":
-			fallthrough
-		case "id":
-			fallthrough
-		case "guildcount":
-			fallthrough
-		case "library":
-			fallthrough
-		case "author":
+		case "username", "id", "guildcount", "library", "author":
 			values["sort"] = []string{sort}
 		}
 	}
@@ -73,9 +65,7 @@ func (queryParameters *QueryParameters) String() string {
 		order := strings.ToUpper(queryParameters.Order)
 
 		switch order {
-		case "DESC":
-			fallthrough
-		case "ASC":
+		case "DESC", "ASC":
 			values["order"] = []string{order}
 		}
 	}

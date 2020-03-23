@@ -1,2 +1,5 @@
 # IDE-specific metadata
 .idea/
+
+# Test results
+coverage.out

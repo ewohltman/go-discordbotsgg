@@ -76,16 +76,16 @@ func (client *Client) queryBot(ctx context.Context, botID string, sanitize bool)
 }
 
 // QueryBots returns results using the provided parameters.
-func (client *Client) QueryBots(queryParameters *QueryParameters) ([]*Bot, error) {
+func (client *Client) QueryBots(queryParameters fmt.Stringer) ([]*Bot, error) {
 	return client.QueryBotsWithContext(context.Background(), queryParameters)
 }
 
 // QueryBotsWithContext returns results using the provided parameters and context.Context.
-func (client *Client) QueryBotsWithContext(ctx context.Context, queryParameters *QueryParameters) ([]*Bot, error) {
+func (client *Client) QueryBotsWithContext(ctx context.Context, queryParameters fmt.Stringer) ([]*Bot, error) {
 	return client.queryBots(ctx, queryParameters)
 }
 
-func (client *Client) queryBots(ctx context.Context, queryParameters *QueryParameters) ([]*Bot, error) {
+func (client *Client) queryBots(ctx context.Context, queryParameters fmt.Stringer) ([]*Bot, error) {
 	err := client.queryLimiter.Wait(context.Background())
 	if err != nil {
 		return nil, err
