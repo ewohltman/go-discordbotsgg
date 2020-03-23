@@ -3,7 +3,7 @@ package discordbotsgg
 import "testing"
 
 func TestQueryParameters_String(t *testing.T) {
-	const expected = "authorId=1&authorName=test&lib=test&limit=1&order=DESC&page=1&q=test&sort=username&unverified=true"
+	const expected = "authorId=1&authorName=test&lib=discordgo&limit=1&order=DESC&page=1&q=test&sort=username&unverified=true"
 
 	queryParameters := &QueryParameters{
 		Q:          "test",
@@ -12,7 +12,7 @@ func TestQueryParameters_String(t *testing.T) {
 		AuthorID:   1,
 		AuthorName: "test",
 		Unverified: true,
-		Lib:        "test",
+		Lib:        "discordgo",
 		Sort:       "username",
 		Order:      "DESC",
 	}

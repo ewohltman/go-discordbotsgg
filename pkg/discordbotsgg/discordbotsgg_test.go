@@ -54,14 +54,52 @@ func TestClient_QueryBotWithContext(t *testing.T) {
 }
 
 func TestClient_QueryBots(t *testing.T) {
-	_, err := NewClient(&http.Client{}, "").QueryBots(&QueryParameters{})
+	var err error
+
+	_, err = NewClient(&http.Client{}, "").QueryBots(&QueryParameters{})
+	if err != nil {
+		t.Errorf(queryBotsErrorMessage, err)
+	}
+
+	queryParameters := &QueryParameters{
+		Q:          "test",
+		Page:       1,
+		Limit:      1,
+		AuthorID:   1,
+		AuthorName: "test",
+		Unverified: true,
+		Lib:        "discordgo",
+		Sort:       "username",
+		Order:      "DESC",
+	}
+
+	_, err = NewClient(&http.Client{}, "").QueryBots(queryParameters)
 	if err != nil {
 		t.Errorf(queryBotsErrorMessage, err)
 	}
 }
 
 func TestClient_QueryBotsWithContext(t *testing.T) {
-	_, err := NewClient(&http.Client{}, "").QueryBotsWithContext(context.Background(), &QueryParameters{})
+	var err error
+
+	_, err = NewClient(&http.Client{}, "").QueryBotsWithContext(context.Background(), &QueryParameters{})
+	if err != nil {
+		t.Errorf(queryBotsErrorMessage, err)
+	}
+
+	queryParameters := &QueryParameters{
+		Q:          "test",
+		Page:       1,
+		Limit:      1,
+		AuthorID:   1,
+		AuthorName: "test",
+		Unverified: true,
+		Lib:        "discordgo",
+		Sort:       "username",
+		Order:      "DESC",
+	}
+
+	_, err = NewClient(&http.Client{}, "").QueryBotsWithContext(context.Background(), queryParameters)
 	if err != nil {
 		t.Errorf(queryBotsErrorMessage, err)
 	}
