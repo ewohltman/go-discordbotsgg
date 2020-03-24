@@ -25,7 +25,7 @@ const (
 
 // HTTPClient is an interface to abstract HTTP client implementations.
 type HTTPClient interface {
-	Do(r *http.Request) (*http.Response, error)
+	Do(*http.Request) (*http.Response, error)
 }
 
 // Client is a discord.bots.gg client.
