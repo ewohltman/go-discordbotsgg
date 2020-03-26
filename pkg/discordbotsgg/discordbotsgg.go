@@ -17,9 +17,11 @@ const (
 	apiURL = "https://discord.bots.gg/api/v1/bots"
 
 	queryLimit     = 10
+	queryBurstSize = queryLimit
 	queryTimeframe = 5 * time.Second
 
 	updateLimit     = 20
+	updateBurstSize = updateLimit
 	updateTimeframe = time.Second
 )
 
@@ -39,11 +41,10 @@ type Client struct {
 // NewClient returns a new *Client with configured rate limiters.
 func NewClient(httpClient HTTPClient, apiToken string) *Client {
 	return &Client{
-		HTTPClient: httpClient,
-		APIToken:   apiToken,
-		// queryLimiter:  rate.NewLimiter(rate.Every(queryTimeframe/queryLimit), 1),
-		queryLimiter:  rate.NewLimiter(rate.Every(queryTimeframe/queryLimit), 1),
-		updateLimiter: rate.NewLimiter(rate.Every(updateTimeframe/updateLimit), 1),
+		HTTPClient:    httpClient,
+		APIToken:      apiToken,
+		queryLimiter:  rate.NewLimiter(rate.Every(queryTimeframe/queryLimit), queryBurstSize),
+		updateLimiter: rate.NewLimiter(rate.Every(updateTimeframe/updateLimit), updateBurstSize),
 	}
 }
 

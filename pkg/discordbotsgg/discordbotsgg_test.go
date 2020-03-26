@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	testBotID = "241930933962407936"
+	testBotID = "12345"
 
 	testParameterPage     = 1
 	testParameterLimit    = 1
@@ -46,9 +46,8 @@ func TestClient_QueryBot(t *testing.T) {
 }
 
 func BenchmarkClient_QueryBot(b *testing.B) {
-	maxRPS := float64(queryLimit) / queryTimeframe.Seconds()
-
 	client := NewClient(mock.NewHTTPClient(), "")
+	client.queryLimiter.ReserveN(time.Now(), queryBurstSize)
 
 	start := time.Now()
 
@@ -60,8 +59,8 @@ func BenchmarkClient_QueryBot(b *testing.B) {
 	}
 
 	duration := time.Since(start).Seconds()
-
 	actualRPS := float64(benchmarkRequests) / duration
+	maxRPS := float64(queryLimit) / queryTimeframe.Seconds()
 
 	b.Logf(
 		"Requests: %d, Seconds: %f, RPS: %f, Max RPS: %f",
@@ -119,10 +118,6 @@ func TestClient_QueryBots(t *testing.T) {
 }
 
 func BenchmarkClient_QueryBots(b *testing.B) {
-	maxRPS := float64(queryLimit) / queryTimeframe.Seconds()
-
-	client := NewClient(mock.NewHTTPClient(), "")
-
 	queryParameters := &QueryParameters{
 		Q:          "test",
 		Page:       testParameterPage,
@@ -135,6 +130,9 @@ func BenchmarkClient_QueryBots(b *testing.B) {
 		Order:      "DESC",
 	}
 
+	client := NewClient(mock.NewHTTPClient(), "")
+	client.queryLimiter.ReserveN(time.Now(), queryBurstSize)
+
 	start := time.Now()
 
 	for i := 0; i < benchmarkRequests; i++ {
@@ -145,8 +143,8 @@ func BenchmarkClient_QueryBots(b *testing.B) {
 	}
 
 	duration := time.Since(start).Seconds()
-
 	actualRPS := float64(benchmarkRequests) / duration
+	maxRPS := float64(queryLimit) / queryTimeframe.Seconds()
 
 	b.Logf(
 		"Requests: %d, Seconds: %f, RPS: %f, Max RPS: %f",
