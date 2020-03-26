@@ -2,19 +2,27 @@ package discordbotsgg
 
 import (
 	"context"
-	"net/http"
 	"testing"
+	"time"
+
+	"github.com/ewohltman/go-discordbotsgg/pkg/mock"
 )
 
 const (
 	testBotID = "241930933962407936"
+
+	testParameterPage     = 1
+	testParameterLimit    = 1
+	testParameterAuthorID = 1
+
+	benchmarkRequests = 10
 
 	queryBotErrorMessage  = "Error querying bot: %s"
 	queryBotsErrorMessage = "Error querying bots: %s"
 )
 
 func TestNewClient(t *testing.T) {
-	client := NewClient(&http.Client{}, "")
+	client := NewClient(mock.NewHTTPClient(), "")
 
 	if client == nil {
 		t.Fatalf("Unexpected nil *Client")
@@ -24,7 +32,7 @@ func TestNewClient(t *testing.T) {
 func TestClient_QueryBot(t *testing.T) {
 	var err error
 
-	client := NewClient(&http.Client{}, "")
+	client := NewClient(mock.NewHTTPClient(), "")
 
 	_, err = client.QueryBot(testBotID, false)
 	if err != nil {
@@ -37,10 +45,41 @@ func TestClient_QueryBot(t *testing.T) {
 	}
 }
 
+func BenchmarkClient_QueryBot(b *testing.B) {
+	maxRPS := float64(queryLimit) / queryTimeframe.Seconds()
+
+	client := NewClient(mock.NewHTTPClient(), "")
+
+	start := time.Now()
+
+	for i := 0; i < benchmarkRequests; i++ {
+		_, err := client.QueryBot(testBotID, false)
+		if err != nil {
+			b.Fatalf(queryBotErrorMessage, err)
+		}
+	}
+
+	duration := time.Since(start).Seconds()
+
+	actualRPS := float64(benchmarkRequests) / duration
+
+	b.Logf(
+		"Requests: %d, Seconds: %f, RPS: %f, Max RPS: %f",
+		benchmarkRequests,
+		duration,
+		actualRPS,
+		maxRPS,
+	)
+
+	if actualRPS > maxRPS {
+		b.Errorf("Failed to enforce rate limit")
+	}
+}
+
 func TestClient_QueryBotWithContext(t *testing.T) {
 	var err error
 
-	client := NewClient(&http.Client{}, "")
+	client := NewClient(mock.NewHTTPClient(), "")
 
 	_, err = client.QueryBotWithContext(context.Background(), testBotID, false)
 	if err != nil {
@@ -56,16 +95,16 @@ func TestClient_QueryBotWithContext(t *testing.T) {
 func TestClient_QueryBots(t *testing.T) {
 	var err error
 
-	_, err = NewClient(&http.Client{}, "").QueryBots(&QueryParameters{})
+	_, err = NewClient(mock.NewHTTPClient(), "").QueryBots(&QueryParameters{})
 	if err != nil {
 		t.Errorf(queryBotsErrorMessage, err)
 	}
 
 	queryParameters := &QueryParameters{
 		Q:          "test",
-		Page:       1,
-		Limit:      1,
-		AuthorID:   1,
+		Page:       testParameterPage,
+		Limit:      testParameterLimit,
+		AuthorID:   testParameterAuthorID,
 		AuthorName: "test",
 		Unverified: true,
 		Lib:        "discordgo",
@@ -73,25 +112,68 @@ func TestClient_QueryBots(t *testing.T) {
 		Order:      "DESC",
 	}
 
-	_, err = NewClient(&http.Client{}, "").QueryBots(queryParameters)
+	_, err = NewClient(mock.NewHTTPClient(), "").QueryBots(queryParameters)
 	if err != nil {
 		t.Errorf(queryBotsErrorMessage, err)
+	}
+}
+
+func BenchmarkClient_QueryBots(b *testing.B) {
+	maxRPS := float64(queryLimit) / queryTimeframe.Seconds()
+
+	client := NewClient(mock.NewHTTPClient(), "")
+
+	queryParameters := &QueryParameters{
+		Q:          "test",
+		Page:       testParameterPage,
+		Limit:      testParameterLimit,
+		AuthorID:   testParameterAuthorID,
+		AuthorName: "test",
+		Unverified: true,
+		Lib:        "discordgo",
+		Sort:       "username",
+		Order:      "DESC",
+	}
+
+	start := time.Now()
+
+	for i := 0; i < benchmarkRequests; i++ {
+		_, err := client.QueryBots(queryParameters)
+		if err != nil {
+			b.Fatalf(queryBotsErrorMessage, err)
+		}
+	}
+
+	duration := time.Since(start).Seconds()
+
+	actualRPS := float64(benchmarkRequests) / duration
+
+	b.Logf(
+		"Requests: %d, Seconds: %f, RPS: %f, Max RPS: %f",
+		benchmarkRequests,
+		duration,
+		actualRPS,
+		maxRPS,
+	)
+
+	if actualRPS > maxRPS {
+		b.Errorf("Failed to enforce rate limit")
 	}
 }
 
 func TestClient_QueryBotsWithContext(t *testing.T) {
 	var err error
 
-	_, err = NewClient(&http.Client{}, "").QueryBotsWithContext(context.Background(), &QueryParameters{})
+	_, err = NewClient(mock.NewHTTPClient(), "").QueryBotsWithContext(context.Background(), &QueryParameters{})
 	if err != nil {
 		t.Errorf(queryBotsErrorMessage, err)
 	}
 
 	queryParameters := &QueryParameters{
 		Q:          "test",
-		Page:       1,
-		Limit:      1,
-		AuthorID:   1,
+		Page:       testParameterPage,
+		Limit:      testParameterLimit,
+		AuthorID:   testParameterAuthorID,
 		AuthorName: "test",
 		Unverified: true,
 		Lib:        "discordgo",
@@ -99,7 +181,7 @@ func TestClient_QueryBotsWithContext(t *testing.T) {
 		Order:      "DESC",
 	}
 
-	_, err = NewClient(&http.Client{}, "").QueryBotsWithContext(context.Background(), queryParameters)
+	_, err = NewClient(mock.NewHTTPClient(), "").QueryBotsWithContext(context.Background(), queryParameters)
 	if err != nil {
 		t.Errorf(queryBotsErrorMessage, err)
 	}

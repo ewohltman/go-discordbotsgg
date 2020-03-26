@@ -7,9 +7,9 @@ func TestQueryParameters_String(t *testing.T) {
 
 	queryParameters := &QueryParameters{
 		Q:          "test",
-		Page:       1,
-		Limit:      1,
-		AuthorID:   1,
+		Page:       testParameterPage,
+		Limit:      testParameterLimit,
+		AuthorID:   testParameterAuthorID,
 		AuthorName: "test",
 		Unverified: true,
 		Lib:        "discordgo",

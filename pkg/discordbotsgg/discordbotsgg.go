@@ -39,10 +39,11 @@ type Client struct {
 // NewClient returns a new *Client with configured rate limiters.
 func NewClient(httpClient HTTPClient, apiToken string) *Client {
 	return &Client{
-		HTTPClient:    httpClient,
-		APIToken:      apiToken,
-		queryLimiter:  rate.NewLimiter(rate.Every(queryTimeframe), queryLimit),
-		updateLimiter: rate.NewLimiter(rate.Every(updateTimeframe), updateLimit),
+		HTTPClient: httpClient,
+		APIToken:   apiToken,
+		// queryLimiter:  rate.NewLimiter(rate.Every(queryTimeframe/queryLimit), 1),
+		queryLimiter:  rate.NewLimiter(rate.Every(queryTimeframe/queryLimit), 1),
+		updateLimiter: rate.NewLimiter(rate.Every(updateTimeframe/updateLimit), 1),
 	}
 }
 
@@ -58,14 +59,14 @@ func (client *Client) QueryBotWithContext(ctx context.Context, botID string, san
 }
 
 func (client *Client) queryBot(ctx context.Context, botID string, sanitize bool) (*Bot, error) {
-	err := client.queryLimiter.Wait(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
 	queryURL := fmt.Sprintf("%s/%s?sanitize=%t", apiURL, botID, sanitize)
 
 	bot := &Bot{}
+
+	err := client.queryLimiter.Wait(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	err = client.doRequest(ctx, queryURL, bot)
 	if err != nil {
@@ -86,11 +87,6 @@ func (client *Client) QueryBotsWithContext(ctx context.Context, queryParameters 
 }
 
 func (client *Client) queryBots(ctx context.Context, queryParameters fmt.Stringer) ([]*Bot, error) {
-	err := client.queryLimiter.Wait(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
 	parametersValues := queryParameters.String()
 
 	var queryURL string
@@ -102,6 +98,11 @@ func (client *Client) queryBots(ctx context.Context, queryParameters fmt.Stringe
 	}
 
 	page := &Page{}
+
+	err := client.queryLimiter.Wait(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	err = client.doRequest(ctx, queryURL, page)
 	if err != nil {
