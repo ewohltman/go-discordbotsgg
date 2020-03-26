@@ -47,7 +47,7 @@ func TestClient_QueryBot(t *testing.T) {
 
 func BenchmarkClient_QueryBot(b *testing.B) {
 	client := NewClient(mock.NewHTTPClient(), "")
-	client.queryLimiter.ReserveN(time.Now(), queryBurstSize)
+	client.queryLimiter.ReserveN(time.Now(), burstSize)
 
 	start := time.Now()
 
@@ -131,7 +131,7 @@ func BenchmarkClient_QueryBots(b *testing.B) {
 	}
 
 	client := NewClient(mock.NewHTTPClient(), "")
-	client.queryLimiter.ReserveN(time.Now(), queryBurstSize)
+	client.queryLimiter.ReserveN(time.Now(), burstSize)
 
 	start := time.Now()
 

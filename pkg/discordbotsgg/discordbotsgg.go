@@ -16,12 +16,12 @@ import (
 const (
 	apiURL = "https://discord.bots.gg/api/v1/bots"
 
+	burstSize = 1
+
 	queryLimit     = 10
-	queryBurstSize = queryLimit
 	queryTimeframe = 5 * time.Second
 
 	updateLimit     = 20
-	updateBurstSize = updateLimit
 	updateTimeframe = time.Second
 )
 
@@ -43,8 +43,8 @@ func NewClient(httpClient HTTPClient, apiToken string) *Client {
 	return &Client{
 		HTTPClient:    httpClient,
 		APIToken:      apiToken,
-		queryLimiter:  rate.NewLimiter(rate.Every(queryTimeframe/queryLimit), queryBurstSize),
-		updateLimiter: rate.NewLimiter(rate.Every(updateTimeframe/updateLimit), updateBurstSize),
+		queryLimiter:  rate.NewLimiter(rate.Every(queryTimeframe/queryLimit), burstSize),
+		updateLimiter: rate.NewLimiter(rate.Every(updateTimeframe/updateLimit), burstSize),
 	}
 }
 
