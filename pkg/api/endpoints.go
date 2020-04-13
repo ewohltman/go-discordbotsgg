@@ -14,7 +14,7 @@ func BotEndpoint(botID string, sanitize bool) string {
 	return fmt.Sprintf(botEndpoint, botID, sanitize)
 }
 
-// BotEndpoint returns an API URL string for querying bots.
+// BotsEndpoint returns an API URL string for querying bots.
 func BotsEndpoint(queryParameters fmt.Stringer) string {
 	if queryParameters == nil {
 		return botsEndpoint
