@@ -50,16 +50,12 @@ func NewClient(httpClient HTTPClient, apiToken string) *Client {
 
 // QueryBot returns information about the given botID.
 func (client *Client) QueryBot(botID string, sanitize bool) (*Bot, error) {
-	return client.QueryBotWithContext(context.Background(), botID, sanitize)
+	return client.QueryBotWithContext(context.TODO(), botID, sanitize)
 }
 
 // QueryBotWithContext returns information about the given botID using the
-// provided context.Context.
+// provided context.
 func (client *Client) QueryBotWithContext(ctx context.Context, botID string, sanitize bool) (*Bot, error) {
-	return client.queryBot(ctx, botID, sanitize)
-}
-
-func (client *Client) queryBot(ctx context.Context, botID string, sanitize bool) (*Bot, error) {
 	queryURL := fmt.Sprintf("%s/%s?sanitize=%t", apiURL, botID, sanitize)
 
 	bot := &Bot{}
@@ -79,15 +75,11 @@ func (client *Client) queryBot(ctx context.Context, botID string, sanitize bool)
 
 // QueryBots returns results using the provided parameters.
 func (client *Client) QueryBots(queryParameters fmt.Stringer) ([]*Bot, error) {
-	return client.QueryBotsWithContext(context.Background(), queryParameters)
+	return client.QueryBotsWithContext(context.TODO(), queryParameters)
 }
 
-// QueryBotsWithContext returns results using the provided parameters and context.Context.
+// QueryBotsWithContext returns results using the provided parameters and context.
 func (client *Client) QueryBotsWithContext(ctx context.Context, queryParameters fmt.Stringer) ([]*Bot, error) {
-	return client.queryBots(ctx, queryParameters)
-}
-
-func (client *Client) queryBots(ctx context.Context, queryParameters fmt.Stringer) ([]*Bot, error) {
 	parametersValues := queryParameters.String()
 
 	var queryURL string
@@ -115,10 +107,17 @@ func (client *Client) queryBots(ctx context.Context, queryParameters fmt.Stringe
 
 // Update updates the given botID with the provided botStats.
 func (client *Client) Update(botID string, botStats *BotStats) error {
-	err := client.updateLimiter.Wait(context.Background())
+	return client.UpdateWithContext(context.TODO(), botID, botStats)
+}
+
+// UpdateWithContext updates the given botID with the provided botStats and context.
+func (client *Client) UpdateWithContext(ctx context.Context, botID string, botStats *BotStats) error {
+	err := client.updateLimiter.Wait(ctx)
 	if err != nil {
 		return err
 	}
+
+	// TODO
 
 	return nil
 }
