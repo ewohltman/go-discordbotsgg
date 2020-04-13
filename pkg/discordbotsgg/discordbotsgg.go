@@ -3,6 +3,7 @@
 package discordbotsgg
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,11 +12,11 @@ import (
 	"time"
 
 	"golang.org/x/time/rate"
+
+	"github.com/ewohltman/go-discordbotsgg/pkg/api"
 )
 
 const (
-	apiURL = "https://discord.bots.gg/api/v1/bots"
-
 	burstSize = 1
 
 	queryLimit     = 10
@@ -49,23 +50,21 @@ func NewClient(httpClient HTTPClient, apiToken string) *Client {
 }
 
 // QueryBot returns information about the given botID.
-func (client *Client) QueryBot(botID string, sanitize bool) (*Bot, error) {
+func (client *Client) QueryBot(botID string, sanitize bool) (*api.Bot, error) {
 	return client.QueryBotWithContext(context.TODO(), botID, sanitize)
 }
 
 // QueryBotWithContext returns information about the given botID using the
 // provided context.
-func (client *Client) QueryBotWithContext(ctx context.Context, botID string, sanitize bool) (*Bot, error) {
-	queryURL := fmt.Sprintf("%s/%s?sanitize=%t", apiURL, botID, sanitize)
-
-	bot := &Bot{}
+func (client *Client) QueryBotWithContext(ctx context.Context, botID string, sanitize bool) (*api.Bot, error) {
+	bot := &api.Bot{}
 
 	err := client.queryLimiter.Wait(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	err = client.doRequest(ctx, queryURL, bot)
+	err = client.doGetRequest(ctx, api.BotEndpoint(botID, sanitize), bot)
 	if err != nil {
 		return nil, err
 	}
@@ -74,60 +73,73 @@ func (client *Client) QueryBotWithContext(ctx context.Context, botID string, san
 }
 
 // QueryBots returns results using the provided parameters.
-func (client *Client) QueryBots(queryParameters fmt.Stringer) ([]*Bot, error) {
+func (client *Client) QueryBots(queryParameters fmt.Stringer) (*api.Page, error) {
 	return client.QueryBotsWithContext(context.TODO(), queryParameters)
 }
 
 // QueryBotsWithContext returns results using the provided parameters and context.
-func (client *Client) QueryBotsWithContext(ctx context.Context, queryParameters fmt.Stringer) ([]*Bot, error) {
-	parametersValues := queryParameters.String()
-
-	var queryURL string
-
-	if parametersValues == "" {
-		queryURL = apiURL
-	} else {
-		queryURL = fmt.Sprintf("%s?%s", apiURL, parametersValues)
-	}
-
-	page := &Page{}
+func (client *Client) QueryBotsWithContext(ctx context.Context, queryParameters fmt.Stringer) (*api.Page, error) {
+	page := &api.Page{}
 
 	err := client.queryLimiter.Wait(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	err = client.doRequest(ctx, queryURL, page)
+	err = client.doGetRequest(ctx, api.BotsEndpoint(queryParameters), page)
 	if err != nil {
 		return nil, err
 	}
 
-	return page.Bots, err
+	return page, err
 }
 
 // Update updates the given botID with the provided botStats.
-func (client *Client) Update(botID string, botStats *BotStats) error {
-	return client.UpdateWithContext(context.TODO(), botID, botStats)
+func (client *Client) Update(botID string, statsUpdate *api.StatsUpdate) (*api.StatsResponse, error) {
+	return client.UpdateWithContext(context.TODO(), botID, statsUpdate)
 }
 
 // UpdateWithContext updates the given botID with the provided botStats and context.
-func (client *Client) UpdateWithContext(ctx context.Context, botID string, botStats *BotStats) error {
+func (client *Client) UpdateWithContext(ctx context.Context, botID string, statsUpdate *api.StatsUpdate) (*api.StatsResponse, error) {
 	err := client.updateLimiter.Wait(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// TODO
+	statsResponse := &api.StatsResponse{}
 
-	return nil
+	err = client.doPostRequest(ctx, api.StatsEndpoint(botID), statsUpdate, statsResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return statsResponse, nil
 }
 
-func (client *Client) doRequest(ctx context.Context, queryURL string, object interface{}) (err error) {
+func (client *Client) doGetRequest(ctx context.Context, queryURL string, responseObject interface{}) (err error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, queryURL, nil)
 	if err != nil {
 		return err
 	}
 
+	return client.doRequest(req, responseObject)
+}
+
+func (client *Client) doPostRequest(ctx context.Context, queryURL string, requestObject, responseObject interface{}) (err error) {
+	objectBytes, err := json.Marshal(requestObject)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, queryURL, bytes.NewReader(objectBytes))
+	if err != nil {
+		return err
+	}
+
+	return client.doRequest(req, responseObject)
+}
+
+func (client *Client) doRequest(req *http.Request, responseObject interface{}) (err error) {
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
 		return err
@@ -150,5 +162,5 @@ func (client *Client) doRequest(ctx context.Context, queryURL string, object int
 		return err
 	}
 
-	return json.Unmarshal(respBody, object)
+	return json.Unmarshal(respBody, responseObject)
 }

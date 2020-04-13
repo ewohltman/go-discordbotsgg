@@ -1,6 +1,14 @@
-package discordbotsgg
+package api
 
-import "testing"
+import (
+	"testing"
+)
+
+const (
+	testParameterPage     = 1
+	testParameterLimit    = 1
+	testParameterAuthorID = 1
+)
 
 func TestQueryParameters_String(t *testing.T) {
 	const expected = "authorId=1&authorName=test&lib=discordgo&limit=1&order=DESC&page=1&q=test&sort=username&unverified=true"

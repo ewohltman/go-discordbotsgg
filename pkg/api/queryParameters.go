@@ -1,10 +1,9 @@
-package discordbotsgg
+package api
 
 import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // QueryParameters are parameters that can be set for querying bots.
@@ -71,53 +70,4 @@ func (queryParameters *QueryParameters) String() string {
 	}
 
 	return values.Encode()
-}
-
-// Page is a response struct from the discord.bots.gg API.
-type Page struct {
-	Count int    `json:"count"`
-	Limit int    `json:"limit"`
-	Page  int    `json:"page"`
-	Bots  []*Bot `json:"bots"`
-}
-
-// Bot is a response struct from the discord.bots.gg API.
-type Bot struct {
-	UserID           string      `json:"userId"`
-	ClientID         string      `json:"clientId"`
-	Username         string      `json:"username"`
-	Discriminator    string      `json:"discriminator"`
-	AvatarURL        string      `json:"avatarURL"`
-	CoOwners         []*BotOwner `json:"coOwners"`
-	Prefix           string      `json:"prefix"`
-	HelpCommand      string      `json:"helpCommand"`
-	LibraryName      string      `json:"libraryName"`
-	Website          string      `json:"website"`
-	SupportInvite    string      `json:"supportInvite"`
-	BotInvite        string      `json:"botInvite"`
-	ShortDescription string      `json:"shortDescription"`
-	LongDescription  string      `json:"longDescription"`
-	OpenSource       string      `json:"openSource"`
-	ShardCount       int         `json:"shardCount"`
-	GuildCount       int         `json:"guildCount"`
-	Verified         bool        `json:"verified"`
-	Online           bool        `json:"online"`
-	InGuild          bool        `json:"inGuild"`
-	Owner            *BotOwner   `json:"owner"`
-	AddedDate        time.Time   `json:"addedDate"`
-	Status           string      `json:"status"`
-}
-
-// BotOwner is a response struct from the discord.bots.gg API.
-type BotOwner struct {
-	Username      string `json:"username"`
-	Discriminator string `json:"discriminator"`
-	UserID        string `json:"userId"`
-}
-
-// BotStats is both a request and response struct for the discord.bots.gg API.
-type BotStats struct {
-	GuildCount int `json:"guildCount"`
-	ShardCount int `json:"shardCount"`
-	ShardID    int `json:"shardID,omitempty"`
 }

@@ -3,10 +3,10 @@ package discordbotsgg
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 	"time"
 
+	"github.com/ewohltman/go-discordbotsgg/pkg/api"
 	"github.com/ewohltman/go-discordbotsgg/pkg/mock"
 )
 
@@ -16,6 +16,9 @@ const (
 	testParameterPage     = 1
 	testParameterLimit    = 1
 	testParameterAuthorID = 1
+
+	testGuildCount = 100
+	testShardCount = 5
 
 	benchmarkRequests = 10
 
@@ -32,9 +35,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func ExampleNewClient() {
-	const requestTimeout = 5 * time.Second
-
-	httpClient := &http.Client{Timeout: requestTimeout}
+	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
 
@@ -44,15 +45,14 @@ func ExampleNewClient() {
 		return
 	}
 
-	fmt.Printf("Bot: %+v\n", bot)
+	fmt.Printf("Bot: %s\n", bot)
+	// Output: Bot: Test Bot 1
 }
 
 func TestClient_QueryBot(t *testing.T) {
-	var err error
-
 	client := NewClient(mock.NewHTTPClient(), "")
 
-	_, err = client.QueryBot(testBotID, false)
+	_, err := client.QueryBot(testBotID, false)
 	if err != nil {
 		t.Errorf(queryBotErrorMessage, err)
 	}
@@ -94,9 +94,7 @@ func BenchmarkClient_QueryBot(b *testing.B) {
 }
 
 func ExampleClient_QueryBot() {
-	const requestTimeout = 5 * time.Second
-
-	httpClient := &http.Client{Timeout: requestTimeout}
+	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
 
@@ -106,15 +104,14 @@ func ExampleClient_QueryBot() {
 		return
 	}
 
-	fmt.Printf("Bot: %+v\n", bot)
+	fmt.Printf("Bot: %s\n", bot)
+	// Output: Bot: Test Bot 1
 }
 
 func TestClient_QueryBotWithContext(t *testing.T) {
-	var err error
-
 	client := NewClient(mock.NewHTTPClient(), "")
 
-	_, err = client.QueryBotWithContext(context.Background(), testBotID, false)
+	_, err := client.QueryBotWithContext(context.Background(), testBotID, false)
 	if err != nil {
 		t.Errorf(queryBotErrorMessage, err)
 	}
@@ -126,12 +123,9 @@ func TestClient_QueryBotWithContext(t *testing.T) {
 }
 
 func ExampleClient_QueryBotWithContext() {
-	const (
-		requestTimeout = 5 * time.Second
-		contextTimeout = 30 * time.Second
-	)
+	const contextTimeout = 30 * time.Second
 
-	httpClient := &http.Client{Timeout: requestTimeout}
+	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
 
@@ -144,18 +138,19 @@ func ExampleClient_QueryBotWithContext() {
 		return
 	}
 
-	fmt.Printf("Bot: %+v\n", bot)
+	fmt.Printf("Bot: %s\n", bot)
+	// Output: Bot: Test Bot 1
 }
 
 func TestClient_QueryBots(t *testing.T) {
-	var err error
+	client := NewClient(mock.NewHTTPClient(), "")
 
-	_, err = NewClient(mock.NewHTTPClient(), "").QueryBots(&QueryParameters{})
+	_, err := client.QueryBots(&api.QueryParameters{})
 	if err != nil {
 		t.Errorf(queryBotsErrorMessage, err)
 	}
 
-	queryParameters := &QueryParameters{
+	queryParameters := &api.QueryParameters{
 		Q:          "test",
 		Page:       testParameterPage,
 		Limit:      testParameterLimit,
@@ -167,14 +162,14 @@ func TestClient_QueryBots(t *testing.T) {
 		Order:      "DESC",
 	}
 
-	_, err = NewClient(mock.NewHTTPClient(), "").QueryBots(queryParameters)
+	_, err = client.QueryBots(queryParameters)
 	if err != nil {
 		t.Errorf(queryBotsErrorMessage, err)
 	}
 }
 
 func BenchmarkClient_QueryBots(b *testing.B) {
-	queryParameters := &QueryParameters{
+	queryParameters := &api.QueryParameters{
 		Q:          "test",
 		Page:       testParameterPage,
 		Limit:      testParameterLimit,
@@ -216,17 +211,20 @@ func BenchmarkClient_QueryBots(b *testing.B) {
 }
 
 func ExampleClient_QueryBots() {
-	const requestTimeout = 5 * time.Second
+	const (
+		pageBotLimit = 100
+		authorID     = 123456789
+	)
 
-	httpClient := &http.Client{Timeout: requestTimeout}
+	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
 
-	queryParameters := &QueryParameters{
+	queryParameters := &api.QueryParameters{
 		Q:          "query",
 		Page:       0,
-		Limit:      50,
-		AuthorID:   123456789,
+		Limit:      pageBotLimit,
+		AuthorID:   authorID,
 		AuthorName: "authorName",
 		Unverified: false,
 		Lib:        "discordgo",
@@ -240,18 +238,19 @@ func ExampleClient_QueryBots() {
 		return
 	}
 
-	fmt.Printf("Bots: %+v\n", bots)
+	fmt.Printf("Bots: %s\n", bots)
+	// Output: Bots: Test Bot 1, Test Bot 2
 }
 
 func TestClient_QueryBotsWithContext(t *testing.T) {
-	var err error
+	client := NewClient(mock.NewHTTPClient(), "")
 
-	_, err = NewClient(mock.NewHTTPClient(), "").QueryBotsWithContext(context.Background(), &QueryParameters{})
+	_, err := client.QueryBotsWithContext(context.Background(), &api.QueryParameters{})
 	if err != nil {
 		t.Errorf(queryBotsErrorMessage, err)
 	}
 
-	queryParameters := &QueryParameters{
+	queryParameters := &api.QueryParameters{
 		Q:          "test",
 		Page:       testParameterPage,
 		Limit:      testParameterLimit,
@@ -263,23 +262,20 @@ func TestClient_QueryBotsWithContext(t *testing.T) {
 		Order:      "DESC",
 	}
 
-	_, err = NewClient(mock.NewHTTPClient(), "").QueryBotsWithContext(context.Background(), queryParameters)
+	_, err = client.QueryBotsWithContext(context.Background(), queryParameters)
 	if err != nil {
 		t.Errorf(queryBotsErrorMessage, err)
 	}
 }
 
 func ExampleClient_QueryBotsWithContext() {
-	const (
-		requestTimeout = 5 * time.Second
-		contextTimeout = 30 * time.Second
-	)
+	const contextTimeout = 30 * time.Second
 
-	httpClient := &http.Client{Timeout: requestTimeout}
+	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
 
-	queryParameters := &QueryParameters{
+	queryParameters := &api.QueryParameters{
 		Q:          "test",
 		Page:       testParameterPage,
 		Limit:      testParameterLimit,
@@ -294,11 +290,66 @@ func ExampleClient_QueryBotsWithContext() {
 	ctx, cancelCtx := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancelCtx()
 
-	bot, err := client.QueryBotsWithContext(ctx, queryParameters)
+	bots, err := client.QueryBotsWithContext(ctx, queryParameters)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err)
 		return
 	}
 
-	fmt.Printf("Bots: %+v\n", bot)
+	fmt.Printf("Bots: %s\n", bots)
+	// Output: Bots: Test Bot 1, Test Bot 2
+}
+
+func TestClient_Update(t *testing.T) {
+	client := NewClient(mock.NewHTTPClient(), "")
+
+	botStatsUpdate := &api.StatsUpdate{
+		Stats: api.Stats{
+			GuildCount: testGuildCount,
+			ShardCount: testShardCount,
+		},
+		ShardID: 0,
+	}
+
+	botStatsResponse, err := client.Update(testBotID, botStatsUpdate)
+	if err != nil {
+		t.Errorf(queryBotsErrorMessage, err)
+	}
+
+	if botStatsResponse.Stats.GuildCount != testGuildCount {
+		t.Errorf("Unexpected guild count stat: %d", botStatsResponse.Stats.GuildCount)
+	}
+
+	if botStatsResponse.Stats.ShardCount != testShardCount {
+		t.Errorf("Unexpected shard count stat: %d", botStatsResponse.Stats.ShardCount)
+	}
+}
+
+func ExampleClient_Update() {
+	const (
+		exampleGuildCount = 100
+		exampleShardCount = 5
+		exampleShardID    = 0
+	)
+
+	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
+
+	client := NewClient(httpClient, "apiToken")
+
+	botStatsUpdate := &api.StatsUpdate{
+		Stats: api.Stats{
+			GuildCount: exampleGuildCount,
+			ShardCount: exampleShardCount,
+		},
+		ShardID: exampleShardID,
+	}
+
+	botStatsResponse, err := client.Update("botID", botStatsUpdate)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		return
+	}
+
+	fmt.Printf("%s", botStatsResponse)
+	// Output: {"guildCount":100,"shardCount":5}
 }

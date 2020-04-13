@@ -2,8 +2,8 @@ package mock
 
 const botResponseString = `
 {
-  "userId": "12345",
-  "clientId": "67890",
+  "userId": "botID",
+  "clientId": "clientID",
   "username": "Test Bot 1",
   "discriminator": null,
   "avatarURL": null,
@@ -40,8 +40,8 @@ const botsResponseString = `
   "page": 0,
   "bots": [
     {
-      "userId": "12345",
-      "clientId": "67890",
+      "userId": "botID",
+      "clientId": "clientID",
       "username": "Test Bot 1",
       "discriminator": null,
       "avatarURL": null,
