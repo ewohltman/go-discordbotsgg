@@ -34,16 +34,16 @@ type HTTPClient interface {
 // Client is a discord.bots.gg client.
 type Client struct {
 	HTTPClient    HTTPClient
-	APIToken      string
+	BotToken      string
 	queryLimiter  *rate.Limiter
 	updateLimiter *rate.Limiter
 }
 
 // NewClient returns a new *Client with configured rate limiters.
-func NewClient(httpClient HTTPClient, apiToken string) *Client {
+func NewClient(httpClient HTTPClient, botToken string) *Client {
 	return &Client{
 		HTTPClient:    httpClient,
-		APIToken:      apiToken,
+		BotToken:      botToken,
 		queryLimiter:  rate.NewLimiter(rate.Every(queryTimeframe/queryLimit), burstSize),
 		updateLimiter: rate.NewLimiter(rate.Every(updateTimeframe/updateLimit), burstSize),
 	}
@@ -126,19 +126,19 @@ func (client *Client) doGetRequest(ctx context.Context, queryURL string, respons
 }
 
 func (client *Client) doPostRequest(ctx context.Context, queryURL string, requestObject, responseObject interface{}) (err error) {
-	objectBytes, err := json.Marshal(requestObject)
+	requestObjectBytes, err := json.Marshal(requestObject)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, queryURL, bytes.NewReader(objectBytes))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, queryURL, bytes.NewReader(requestObjectBytes))
 	if err != nil {
 		return err
 	}
 
-	req.Header.Set("Authorization", client.APIToken)
+	req.Header.Set("Authorization", client.BotToken)
 	req.Header.Set("Content-Type", "application/json")
-	req.ContentLength = int64(len(objectBytes))
+	req.ContentLength = int64(len(requestObjectBytes))
 
 	return client.doRequest(req, responseObject)
 }
@@ -164,6 +164,10 @@ func (client *Client) doRequest(req *http.Request, responseObject interface{}) (
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected response code: %d", resp.StatusCode)
 	}
 
 	return json.Unmarshal(respBody, responseObject)
