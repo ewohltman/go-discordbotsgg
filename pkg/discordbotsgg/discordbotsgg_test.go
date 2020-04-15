@@ -303,7 +303,7 @@ func TestClient_Update(t *testing.T) {
 	client := NewClient(mock.NewHTTPClient(), "")
 
 	botStatsUpdate := &api.StatsUpdate{
-		Stats: api.Stats{
+		Stats: &api.Stats{
 			GuildCount: testGuildCount,
 			ShardCount: testShardCount,
 		},
@@ -331,7 +331,7 @@ func BenchmarkClient_Update(b *testing.B) {
 	start := time.Now()
 
 	statsUpdate := &api.StatsUpdate{
-		Stats: api.Stats{
+		Stats: &api.Stats{
 			GuildCount: testGuildCount,
 			ShardCount: testShardCount,
 		},
@@ -374,7 +374,7 @@ func ExampleClient_Update() {
 	client := NewClient(httpClient, "apiToken")
 
 	botStatsUpdate := &api.StatsUpdate{
-		Stats: api.Stats{
+		Stats: &api.Stats{
 			GuildCount: exampleGuildCount,
 			ShardCount: exampleShardCount,
 		},
@@ -395,7 +395,7 @@ func TestClient_UpdateWithContext(t *testing.T) {
 	client := NewClient(mock.NewHTTPClient(), "")
 
 	botStatsUpdate := &api.StatsUpdate{
-		Stats: api.Stats{
+		Stats: &api.Stats{
 			GuildCount: testGuildCount,
 			ShardCount: testShardCount,
 		},
@@ -430,7 +430,7 @@ func ExampleClient_UpdateWithContext() {
 	client := NewClient(httpClient, "apiToken")
 
 	botStatsUpdate := &api.StatsUpdate{
-		Stats: api.Stats{
+		Stats: &api.Stats{
 			GuildCount: exampleGuildCount,
 			ShardCount: exampleShardCount,
 		},

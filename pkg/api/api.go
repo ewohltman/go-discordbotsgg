@@ -66,13 +66,13 @@ type BotOwner struct {
 
 // StatsUpdate is a request struct for the discord.bots.gg API.
 type StatsUpdate struct {
-	Stats
+	*Stats
 	ShardID int `json:"shardID"`
 }
 
 // StatsResponse is a response struct from the discord.bots.gg API.
 type StatsResponse struct {
-	Stats
+	*Stats
 }
 
 // String satisfies the fmt.Stringer interface and returns the JSON

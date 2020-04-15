@@ -41,7 +41,7 @@ func TestBot_String(t *testing.T) {
 
 func TestStatsResponse_String(t *testing.T) {
 	statsResponse := StatsResponse{
-		Stats{
+		&Stats{
 			GuildCount: testGuildCount,
 			ShardCount: testShardCount,
 		},

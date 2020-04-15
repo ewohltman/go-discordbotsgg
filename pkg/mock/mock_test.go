@@ -67,7 +67,7 @@ func doTestRequests(client *http.Client) error {
 	}
 
 	statsUpdate := &api.StatsUpdate{
-		Stats: api.Stats{
+		Stats: &api.Stats{
 			GuildCount: testGuildCount,
 			ShardCount: testShardCount,
 		},
