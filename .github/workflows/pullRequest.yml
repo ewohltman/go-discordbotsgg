@@ -31,9 +31,6 @@ jobs:
       - name: Run tests
         run: make test
 
-      - name: Run benchmarks
-        run: make bench
-
       - name: Run test coverage
         env:
           COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
