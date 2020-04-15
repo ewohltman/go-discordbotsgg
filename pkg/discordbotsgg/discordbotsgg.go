@@ -137,6 +137,8 @@ func (client *Client) doPostRequest(ctx context.Context, queryURL string, reques
 	}
 
 	req.Header.Set("Authorization", client.APIToken)
+	req.Header.Set("Content-Type", "application/json")
+	req.ContentLength = int64(len(objectBytes))
 
 	return client.doRequest(req, responseObject)
 }
