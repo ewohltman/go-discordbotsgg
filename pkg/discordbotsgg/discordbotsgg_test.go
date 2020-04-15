@@ -20,10 +20,9 @@ const (
 	testGuildCount = 100
 	testShardCount = 5
 
-	benchmarkRequests = 10
-
-	queryBotErrorMessage  = "Error querying bot: %s"
-	queryBotsErrorMessage = "Error querying bots: %s"
+	queryBotErrorMessage       = "Error querying bot: %s"
+	queryBotsErrorMessage      = "Error querying bots: %s"
+	updateBotStatsErrorMessage = "Error updating bot stats: %s"
 )
 
 func TestNewClient(t *testing.T) {
@@ -69,7 +68,7 @@ func BenchmarkClient_QueryBot(b *testing.B) {
 
 	start := time.Now()
 
-	for i := 0; i < benchmarkRequests; i++ {
+	for i := 0; i < b.N; i++ {
 		_, err := client.QueryBot(testBotID, false)
 		if err != nil {
 			b.Fatalf(queryBotErrorMessage, err)
@@ -77,12 +76,12 @@ func BenchmarkClient_QueryBot(b *testing.B) {
 	}
 
 	duration := time.Since(start).Seconds()
-	actualRPS := float64(benchmarkRequests) / duration
+	actualRPS := float64(b.N) / duration
 	maxRPS := float64(queryLimit) / queryTimeframe.Seconds()
 
 	b.Logf(
 		"Requests: %d, Seconds: %f, RPS: %f, Max RPS: %f",
-		benchmarkRequests,
+		b.N,
 		duration,
 		actualRPS,
 		maxRPS,
@@ -186,7 +185,7 @@ func BenchmarkClient_QueryBots(b *testing.B) {
 
 	start := time.Now()
 
-	for i := 0; i < benchmarkRequests; i++ {
+	for i := 0; i < b.N; i++ {
 		_, err := client.QueryBots(queryParameters)
 		if err != nil {
 			b.Fatalf(queryBotsErrorMessage, err)
@@ -194,12 +193,12 @@ func BenchmarkClient_QueryBots(b *testing.B) {
 	}
 
 	duration := time.Since(start).Seconds()
-	actualRPS := float64(benchmarkRequests) / duration
+	actualRPS := float64(b.N) / duration
 	maxRPS := float64(queryLimit) / queryTimeframe.Seconds()
 
 	b.Logf(
 		"Requests: %d, Seconds: %f, RPS: %f, Max RPS: %f",
-		benchmarkRequests,
+		b.N,
 		duration,
 		actualRPS,
 		maxRPS,
@@ -313,7 +312,7 @@ func TestClient_Update(t *testing.T) {
 
 	botStatsResponse, err := client.Update(testBotID, botStatsUpdate)
 	if err != nil {
-		t.Errorf(queryBotsErrorMessage, err)
+		t.Errorf(updateBotStatsErrorMessage, err)
 	}
 
 	if botStatsResponse.Stats.GuildCount != testGuildCount {
@@ -322,6 +321,44 @@ func TestClient_Update(t *testing.T) {
 
 	if botStatsResponse.Stats.ShardCount != testShardCount {
 		t.Errorf("Unexpected shard count stat: %d", botStatsResponse.Stats.ShardCount)
+	}
+}
+
+func BenchmarkClient_Update(b *testing.B) {
+	client := NewClient(mock.NewHTTPClient(), "")
+	client.updateLimiter.ReserveN(time.Now(), burstSize)
+
+	start := time.Now()
+
+	statsUpdate := &api.StatsUpdate{
+		Stats: api.Stats{
+			GuildCount: testGuildCount,
+			ShardCount: testShardCount,
+		},
+		ShardID: 0,
+	}
+
+	for i := 0; i < b.N; i++ {
+		_, err := client.Update(testBotID, statsUpdate)
+		if err != nil {
+			b.Fatalf(updateBotStatsErrorMessage, err)
+		}
+	}
+
+	duration := time.Since(start).Seconds()
+	actualRPS := float64(b.N) / duration
+	maxRPS := float64(updateLimit) / updateTimeframe.Seconds()
+
+	b.Logf(
+		"Requests: %d, Seconds: %f, RPS: %f, Max RPS: %f",
+		b.N,
+		duration,
+		actualRPS,
+		maxRPS,
+	)
+
+	if actualRPS > maxRPS {
+		b.Errorf("Failed to enforce rate limit")
 	}
 }
 
@@ -345,6 +382,65 @@ func ExampleClient_Update() {
 	}
 
 	botStatsResponse, err := client.Update("botID", botStatsUpdate)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		return
+	}
+
+	fmt.Printf("%s", botStatsResponse)
+	// Output: {"guildCount":100,"shardCount":5}
+}
+
+func TestClient_UpdateWithContext(t *testing.T) {
+	client := NewClient(mock.NewHTTPClient(), "")
+
+	botStatsUpdate := &api.StatsUpdate{
+		Stats: api.Stats{
+			GuildCount: testGuildCount,
+			ShardCount: testShardCount,
+		},
+		ShardID: 0,
+	}
+
+	botStatsResponse, err := client.UpdateWithContext(context.Background(), testBotID, botStatsUpdate)
+	if err != nil {
+		t.Errorf(updateBotStatsErrorMessage, err)
+	}
+
+	if botStatsResponse.Stats.GuildCount != testGuildCount {
+		t.Errorf("Unexpected guild count stat: %d", botStatsResponse.Stats.GuildCount)
+	}
+
+	if botStatsResponse.Stats.ShardCount != testShardCount {
+		t.Errorf("Unexpected shard count stat: %d", botStatsResponse.Stats.ShardCount)
+	}
+}
+
+func ExampleClient_UpdateWithContext() {
+	const (
+		contextTimeout = 30 * time.Second
+
+		exampleGuildCount = 100
+		exampleShardCount = 5
+		exampleShardID    = 0
+	)
+
+	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
+
+	client := NewClient(httpClient, "apiToken")
+
+	botStatsUpdate := &api.StatsUpdate{
+		Stats: api.Stats{
+			GuildCount: exampleGuildCount,
+			ShardCount: exampleShardCount,
+		},
+		ShardID: exampleShardID,
+	}
+
+	ctx, cancelCtx := context.WithTimeout(context.Background(), contextTimeout)
+	defer cancelCtx()
+
+	botStatsResponse, err := client.UpdateWithContext(ctx, "botID", botStatsUpdate)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err)
 		return
