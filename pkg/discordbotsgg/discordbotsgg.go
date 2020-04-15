@@ -116,7 +116,7 @@ func (client *Client) UpdateWithContext(ctx context.Context, botID string, stats
 	return statsResponse, nil
 }
 
-func (client *Client) doGetRequest(ctx context.Context, queryURL string, responseObject interface{}) (err error) {
+func (client *Client) doGetRequest(ctx context.Context, queryURL string, responseObject interface{}) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, queryURL, nil)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (client *Client) doGetRequest(ctx context.Context, queryURL string, respons
 	return client.doRequest(req, responseObject)
 }
 
-func (client *Client) doPostRequest(ctx context.Context, queryURL string, requestObject, responseObject interface{}) (err error) {
+func (client *Client) doPostRequest(ctx context.Context, queryURL string, requestObject, responseObject interface{}) error {
 	requestObjectBytes, err := json.Marshal(requestObject)
 	if err != nil {
 		return err
