@@ -136,6 +136,8 @@ func (client *Client) doPostRequest(ctx context.Context, queryURL string, reques
 		return err
 	}
 
+	req.Header.Set("Authorization", client.APIToken)
+
 	return client.doRequest(req, responseObject)
 }
 
