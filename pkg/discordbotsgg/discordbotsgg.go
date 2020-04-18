@@ -11,14 +11,10 @@ import (
 	"net/http"
 	"time"
 
-	"golang.org/x/time/rate"
-
 	"github.com/ewohltman/go-discordbotsgg/pkg/api"
 )
 
 const (
-	burstSize = 1
-
 	queryLimit     = 10
 	queryTimeframe = 5 * time.Second
 
@@ -35,18 +31,28 @@ type HTTPClient interface {
 type Client struct {
 	HTTPClient    HTTPClient
 	BotToken      string
-	queryLimiter  *rate.Limiter
-	updateLimiter *rate.Limiter
+	queryLimiter  *time.Ticker
+	updateLimiter *time.Ticker
 }
 
-// NewClient returns a new *Client with configured rate limiters.
+// NewClient returns a new *Client with configured rate limiters. Callers
+// should call the *Client.Close method when done with the *Client to avoid
+// leaks.
 func NewClient(httpClient HTTPClient, botToken string) *Client {
-	return &Client{
+	client := &Client{
 		HTTPClient:    httpClient,
 		BotToken:      botToken,
-		queryLimiter:  rate.NewLimiter(rate.Every(queryTimeframe/queryLimit), burstSize),
-		updateLimiter: rate.NewLimiter(rate.Every(updateTimeframe/updateLimit), burstSize),
+		queryLimiter:  time.NewTicker(queryTimeframe / queryLimit),
+		updateLimiter: time.NewTicker(updateTimeframe / updateLimit),
 	}
+
+	return client
+}
+
+// Close stops the *Client rate limiting time.Tickers to release resources.
+func (client *Client) Close() {
+	client.queryLimiter.Stop()
+	client.updateLimiter.Stop()
 }
 
 // QueryBot returns information about the given botID.
@@ -57,14 +63,11 @@ func (client *Client) QueryBot(botID string, sanitize bool) (*api.Bot, error) {
 // QueryBotWithContext returns information about the given botID using the
 // provided context.
 func (client *Client) QueryBotWithContext(ctx context.Context, botID string, sanitize bool) (*api.Bot, error) {
+	<-client.queryLimiter.C
+
 	bot := &api.Bot{}
 
-	err := client.queryLimiter.Wait(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = client.doGetRequest(ctx, api.BotEndpoint(botID, sanitize), bot)
+	err := client.doGetRequest(ctx, api.BotEndpoint(botID, sanitize), bot)
 	if err != nil {
 		return nil, err
 	}
@@ -79,14 +82,11 @@ func (client *Client) QueryBots(queryParameters fmt.Stringer) (*api.Page, error)
 
 // QueryBotsWithContext returns results using the provided parameters and context.
 func (client *Client) QueryBotsWithContext(ctx context.Context, queryParameters fmt.Stringer) (*api.Page, error) {
+	<-client.queryLimiter.C
+
 	page := &api.Page{}
 
-	err := client.queryLimiter.Wait(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = client.doGetRequest(ctx, api.BotsEndpoint(queryParameters), page)
+	err := client.doGetRequest(ctx, api.BotsEndpoint(queryParameters), page)
 	if err != nil {
 		return nil, err
 	}
@@ -101,14 +101,11 @@ func (client *Client) Update(botID string, statsUpdate *api.StatsUpdate) (*api.S
 
 // UpdateWithContext updates the given botID with the provided botStats and context.
 func (client *Client) UpdateWithContext(ctx context.Context, botID string, statsUpdate *api.StatsUpdate) (*api.StatsResponse, error) {
-	err := client.updateLimiter.Wait(ctx)
-	if err != nil {
-		return nil, err
-	}
+	<-client.updateLimiter.C
 
 	statsResponse := &api.StatsResponse{}
 
-	err = client.doPostRequest(ctx, api.StatsEndpoint(botID), statsUpdate, statsResponse)
+	err := client.doPostRequest(ctx, api.StatsEndpoint(botID), statsUpdate, statsResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +164,11 @@ func (client *Client) doRequest(req *http.Request, responseObject interface{}) (
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected response code: %d", resp.StatusCode)
+		return fmt.Errorf(
+			"unexpected response code: %d %s",
+			resp.StatusCode,
+			http.StatusText(resp.StatusCode),
+		)
 	}
 
 	return json.Unmarshal(respBody, responseObject)

@@ -67,7 +67,7 @@ type BotOwner struct {
 // StatsUpdate is a request struct for the discord.bots.gg API.
 type StatsUpdate struct {
 	*Stats
-	ShardID int `json:"shardID"`
+	ShardID int `json:"shardID,omitempty"`
 }
 
 // StatsResponse is a response struct from the discord.bots.gg API.
@@ -89,5 +89,5 @@ func (statsResponse *StatsResponse) String() string {
 // Stats is a struct containing metrics for a bot on discord.bots.gg.
 type Stats struct {
 	GuildCount int `json:"guildCount"`
-	ShardCount int `json:"shardCount"`
+	ShardCount int `json:"shardCount,omitempty"`
 }

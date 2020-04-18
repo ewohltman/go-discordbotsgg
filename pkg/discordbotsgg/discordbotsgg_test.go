@@ -27,6 +27,7 @@ const (
 
 func TestNewClient(t *testing.T) {
 	client := NewClient(mock.NewHTTPClient(), "")
+	defer client.Close()
 
 	if client == nil {
 		t.Fatalf("Unexpected nil *Client")
@@ -37,6 +38,7 @@ func ExampleNewClient() {
 	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
+	defer client.Close()
 
 	bot, err := client.QueryBot("botID", true)
 	if err != nil {
@@ -50,6 +52,7 @@ func ExampleNewClient() {
 
 func TestClient_QueryBot(t *testing.T) {
 	client := NewClient(mock.NewHTTPClient(), "")
+	defer client.Close()
 
 	_, err := client.QueryBot(testBotID, false)
 	if err != nil {
@@ -64,7 +67,7 @@ func TestClient_QueryBot(t *testing.T) {
 
 func BenchmarkClient_QueryBot(b *testing.B) {
 	client := NewClient(mock.NewHTTPClient(), "")
-	client.queryLimiter.ReserveN(time.Now(), burstSize)
+	defer client.Close()
 
 	start := time.Now()
 
@@ -96,6 +99,7 @@ func ExampleClient_QueryBot() {
 	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
+	defer client.Close()
 
 	bot, err := client.QueryBot("botID", true)
 	if err != nil {
@@ -109,6 +113,7 @@ func ExampleClient_QueryBot() {
 
 func TestClient_QueryBotWithContext(t *testing.T) {
 	client := NewClient(mock.NewHTTPClient(), "")
+	defer client.Close()
 
 	_, err := client.QueryBotWithContext(context.Background(), testBotID, false)
 	if err != nil {
@@ -127,6 +132,7 @@ func ExampleClient_QueryBotWithContext() {
 	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
+	defer client.Close()
 
 	ctx, cancelCtx := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancelCtx()
@@ -143,6 +149,7 @@ func ExampleClient_QueryBotWithContext() {
 
 func TestClient_QueryBots(t *testing.T) {
 	client := NewClient(mock.NewHTTPClient(), "")
+	defer client.Close()
 
 	_, err := client.QueryBots(&api.QueryParameters{})
 	if err != nil {
@@ -181,7 +188,7 @@ func BenchmarkClient_QueryBots(b *testing.B) {
 	}
 
 	client := NewClient(mock.NewHTTPClient(), "")
-	client.queryLimiter.ReserveN(time.Now(), burstSize)
+	defer client.Close()
 
 	start := time.Now()
 
@@ -218,6 +225,7 @@ func ExampleClient_QueryBots() {
 	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
+	defer client.Close()
 
 	queryParameters := &api.QueryParameters{
 		Q:          "query",
@@ -243,6 +251,7 @@ func ExampleClient_QueryBots() {
 
 func TestClient_QueryBotsWithContext(t *testing.T) {
 	client := NewClient(mock.NewHTTPClient(), "")
+	defer client.Close()
 
 	_, err := client.QueryBotsWithContext(context.Background(), &api.QueryParameters{})
 	if err != nil {
@@ -273,6 +282,7 @@ func ExampleClient_QueryBotsWithContext() {
 	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
+	defer client.Close()
 
 	queryParameters := &api.QueryParameters{
 		Q:          "test",
@@ -301,6 +311,7 @@ func ExampleClient_QueryBotsWithContext() {
 
 func TestClient_Update(t *testing.T) {
 	client := NewClient(mock.NewHTTPClient(), "")
+	defer client.Close()
 
 	botStatsUpdate := &api.StatsUpdate{
 		Stats: &api.Stats{
@@ -326,7 +337,7 @@ func TestClient_Update(t *testing.T) {
 
 func BenchmarkClient_Update(b *testing.B) {
 	client := NewClient(mock.NewHTTPClient(), "")
-	client.updateLimiter.ReserveN(time.Now(), burstSize)
+	defer client.Close()
 
 	start := time.Now()
 
@@ -372,6 +383,7 @@ func ExampleClient_Update() {
 	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
+	defer client.Close()
 
 	botStatsUpdate := &api.StatsUpdate{
 		Stats: &api.Stats{
@@ -393,6 +405,7 @@ func ExampleClient_Update() {
 
 func TestClient_UpdateWithContext(t *testing.T) {
 	client := NewClient(mock.NewHTTPClient(), "")
+	defer client.Close()
 
 	botStatsUpdate := &api.StatsUpdate{
 		Stats: &api.Stats{
@@ -428,6 +441,7 @@ func ExampleClient_UpdateWithContext() {
 	httpClient := mock.NewHTTPClient() // Substitute a real *http.Client here.
 
 	client := NewClient(httpClient, "apiToken")
+	defer client.Close()
 
 	botStatsUpdate := &api.StatsUpdate{
 		Stats: &api.Stats{
