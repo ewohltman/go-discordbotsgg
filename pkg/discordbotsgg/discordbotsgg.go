@@ -57,12 +57,12 @@ func (client *Client) QueryBot(botID string, sanitize bool) (*api.Bot, error) {
 // QueryBotWithContext returns information about the given botID using the
 // provided context.
 func (client *Client) QueryBotWithContext(ctx context.Context, botID string, sanitize bool) (*api.Bot, error) {
-	bot := &api.Bot{}
-
 	err := client.queryLimiter.Wait(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	bot := &api.Bot{}
 
 	err = client.doGetRequest(ctx, api.BotEndpoint(botID, sanitize), bot)
 	if err != nil {
@@ -79,12 +79,12 @@ func (client *Client) QueryBots(queryParameters fmt.Stringer) (*api.Page, error)
 
 // QueryBotsWithContext returns results using the provided parameters and context.
 func (client *Client) QueryBotsWithContext(ctx context.Context, queryParameters fmt.Stringer) (*api.Page, error) {
-	page := &api.Page{}
-
 	err := client.queryLimiter.Wait(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	page := &api.Page{}
 
 	err = client.doGetRequest(ctx, api.BotsEndpoint(queryParameters), page)
 	if err != nil {
@@ -167,7 +167,11 @@ func (client *Client) doRequest(req *http.Request, responseObject interface{}) (
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected response code: %d", resp.StatusCode)
+		return fmt.Errorf(
+			"unexpected response code: %d %s",
+			resp.StatusCode,
+			http.StatusText(resp.StatusCode),
+		)
 	}
 
 	return json.Unmarshal(respBody, responseObject)
