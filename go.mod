@@ -1,3 +1,3 @@
 module github.com/ewohltman/go-discordbotsgg
 
-go 1.14
+go 1.15
